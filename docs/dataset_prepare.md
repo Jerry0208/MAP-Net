@@ -133,3 +133,30 @@ and more details can be found [here](../tools/data/dehazing/hazeworld/preprocess
    > and using the default interpolation method) and save (*jpg*, default quality, lossy compression, to save storage) images.
 
 * Also, we manually check the data and remove some improper videos (*e.g.*, indoor or nighttime scenes).
+
+
+## Kaggle custom inference clips
+
+If you only have custom hazy clips on Kaggle (for example `infer_peng/clip_xxx/00000.jpeg`)
+and want to reuse the default HazeWorld test pipeline, you can prepare a compatible layout:
+
+```shell
+python tools/data/dehazing/hazeworld/prepare_kaggle_infer_folder.py \
+  --input-dir /kaggle/input/datasets/jieweijian/infer-peng/infer_peng \
+  --output-root /kaggle/working/MAP-Net/data/HazeWorld/test \
+  --dataset-name Custom \
+  --copy-mode symlink
+```
+
+Then test with the original MAP-Net config by overriding only the test paths:
+
+```shell
+python tools/test.py configs/dehazers/mapnet/mapnet_hazeworld.py \
+  /kaggle/input/datasets/jieweijian/mapnet-hazeworld-40k/mapnet_hazeworld_40k.pth \
+  --launcher none \
+  --cfg-options \
+    data.test.lq_folder=/kaggle/working/MAP-Net/data/HazeWorld/test/hazy \
+    data.test.gt_folder=/kaggle/working/MAP-Net/data/HazeWorld/test/gt \
+    data.test.ann_file=/kaggle/working/MAP-Net/data/HazeWorld/test/meta_info_GT_test.txt \
+    data.test.pipeline.0.annotation_tree_json=/kaggle/working/MAP-Net/data/HazeWorld/test/meta_info_tree_GT_test.json
+```
